@@ -1,1 +1,2 @@
-﻿{ "buildCommand": "echo \"No build step\"" }
+﻿{}
+//"buildCommand": "echo \"No build step\""
