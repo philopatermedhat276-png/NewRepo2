@@ -1,4 +1,1 @@
-﻿//{"buildCommand": "echo \"No build step\""}
-{
-	"version": 2
-}
+﻿{"buildCommand": "echo \"No build step\""}
