@@ -1777,20 +1777,70 @@
 		</div>
 	</div>
 
+	<!-- Firebase App & Firestore -->
+	<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 	<script>
-		/* ====== إصلاح مشكلة الحفظ (Local Storage Polyfill) ====== */
+		/* ====== إصلاح مشكلة الحفظ عبر Firebase ====== */
+		const firebaseConfig = {
+		  apiKey: "AIzaSyAba-9SzyUPWoc92Am1uqMvdwDaN6tew_s",
+		  authDomain: "shbab-extra60.firebaseapp.com",
+		  projectId: "shbab-extra60",
+		  storageBucket: "shbab-extra60.firebasestorage.app",
+		  messagingSenderId: "174676104417",
+		  appId: "1:174676104417:web:91432deec6ea48828f93a0",
+		  measurementId: "G-THRJD2H7ZG"
+		};
+		if (!firebase.apps.length) {
+			firebase.initializeApp(firebaseConfig);
+		}
+		const db = firebase.firestore();
+
 		window.storage = {
-			async get(key) { return { value: localStorage.getItem(key) }; },
-			async set(key, value) { localStorage.setItem(key, value); return true; },
-			async list(prefix) { 
-				const keys = []; 
-				for(let i=0; i<localStorage.length; i++) {
-					const k = localStorage.key(i);
-					if(k.startsWith(prefix)) keys.push(k);
+			async get(key) { 
+				try {
+					const doc = await db.collection("appData").doc(key).get();
+					if (doc.exists) return { value: doc.data().value };
+					return { value: null };
+				} catch(e) {
+					console.error("Firebase get error", e);
+					return { value: null };
 				}
-				return { keys };
 			},
-			async delete(key) { localStorage.removeItem(key); return true; }
+			async set(key, value) {
+				try {
+					await db.collection("appData").doc(key).set({ value: value, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+					return true;
+				} catch(e) {
+					console.error("Firebase set error", e);
+					return false;
+				}
+			},
+			async list(prefix) { 
+				try {
+					const querySnapshot = await db.collection("appData")
+						.where(firebase.firestore.FieldPath.documentId(), ">=", prefix)
+						.where(firebase.firestore.FieldPath.documentId(), "<=", prefix + "\uf8ff")
+						.get();
+					const keys = [];
+					querySnapshot.forEach((doc) => {
+						keys.push(doc.id);
+					});
+					return { keys };
+				} catch(e) {
+					console.error("Firebase list error", e);
+					return { keys: [] };
+				}
+			},
+			async delete(key) { 
+				try {
+					await db.collection("appData").doc(key).delete();
+					return true;
+				} catch(e) {
+					console.error("Firebase delete error", e);
+					return false;
+				}
+			}
 		};
 
 		/* ====== عدّل بيانات الأيام هنا فقط ====== */
